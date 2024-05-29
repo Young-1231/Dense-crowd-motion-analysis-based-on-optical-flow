@@ -1,0 +1,3 @@
+[submodule "mmflow"]
+	path = mmflow
+	url = https://github.com/open-mmlab/mmflow.git
