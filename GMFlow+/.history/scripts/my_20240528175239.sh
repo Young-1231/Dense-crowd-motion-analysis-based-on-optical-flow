@@ -1,0 +1,1 @@
+CUDA_VISIBLE_DEVICES=0 python main_flow.py --eval --resume pretrained/gmflow-scale1-mixdata-train320x576-4c3a6e9a.pth --val_dataset tub --with_speed_metric
