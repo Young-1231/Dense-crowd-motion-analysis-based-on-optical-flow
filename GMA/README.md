@@ -2,14 +2,14 @@
   <img src="resources/mmflow-logo.png" width="600"/>
     <div>&nbsp;</div>
   <div align="center">
-    <b><font size="5">OpenMMLab website</font></b>
+    <b><font size="5">OpenMMLab 官网</font></b>
     <sup>
       <a href="https://openmmlab.com">
         <i><font size="4">HOT</font></i>
       </a>
     </sup>
     &nbsp;&nbsp;&nbsp;&nbsp;
-    <b><font size="5">OpenMMLab platform</font></b>
+    <b><font size="5">OpenMMLab 开放平台</font></b>
     <sup>
       <a href="https://platform.openmmlab.com">
         <i><font size="4">TRY IT OUT</font></i>
@@ -26,134 +26,64 @@
 [![license](https://img.shields.io/github/license/open-mmlab/mmflow.svg)](https://github.com/open-mmlab/mmflow/blob/master/LICENSE)
 [![open issues](https://isitmaintained.com/badge/open/open-mmlab/mmflow.svg)](https://github.com/open-mmlab/mmflow/issues)
 
-[📘Documentation](https://mmflow.readthedocs.io/en/latest/) |
-[🛠️Installation](https://mmflow.readthedocs.io/en/latest/install.html) |
-[👀Model Zoo](https://mmflow.readthedocs.io/en/latest/model_zoo.html) |
-[🤔Reporting Issues](https://github.com/open-mmlab/mmflow/issues/new/choose)
+[📘使用文档](https://mmflow.readthedocs.io/en/latest/) |
+[🛠️安装教程](https://mmflow.readthedocs.io/en/latest/install.html) |
+[👀模型库](https://mmflow.readthedocs.io/en/latest/model_zoo.html) |
+[🤔报告问题](https://github.com/open-mmlab/mmflow/issues/new/choose)
 
 </div>
 
 <div align="center">
 
-English | [简体中文](README_zh-CN.md)
+[English](README.md) | 简体中文
 
 </div>
 
-## Introduction
+## 简介
 
-MMFlow is an open source optical flow toolbox based on PyTorch. It is a part of the [OpenMMLab](https://openmmlab.com/) project.
+MMFlow 是一款基于 PyTorch 的光流工具箱，是 [OpenMMLab](http://openmmlab.org/) 项目的成员之一。
 
-The master branch works with **PyTorch 1.5+**.
+主分支代码目前支持 **PyTorch 1.5 以上**的版本。
 
 <https://user-images.githubusercontent.com/76149310/141947796-af4f1e67-60c9-48ed-9dd6-fcd809a7d991.mp4>
 
-### Major features
+### 主要特性
 
-- **The First Unified Framework for Optical Flow**
+- **首个光流算法的统一框架**
 
-  MMFlow is the first toolbox that provides a framework for unified implementation and evaluation of optical flow algorithms.
+  MMFlow 是第一个提供光流方法统一实现和评估框架的工具箱。
 
-- **Flexible and Modular Design**
+- **模块化设计**
 
-  We decompose the flow estimation framework into different components,
-  which makes it much easy and flexible to build a new model by combining different modules.
+  MMFlow 将光流估计框架解耦成不同的模块组件，通过组合不同的模块组件，用户可以便捷地构建自定义的光流算法模型。
 
-- **Plenty of Algorithms and Datasets Out of the Box**
+- **丰富的开箱即用的算法和数据集**
 
-  The toolbox directly supports popular and contemporary optical flow models, *e.g.* FlowNet, PWC-Net, RAFT, etc,
-  and representative datasets, FlyingChairs, FlyingThings3D, Sintel, KITTI, etc.
+  MMFlow 支持了众多主流经典的光流算法，例如 FlowNet, PWC-Net, RAFT 等，
+  以及多种数据集的准备和构建，如 FlyingChairs, FlyingThings3D, Sintel, KITTI 等。
 
-## What's New
+具体介绍与安装详情请见[这里](https://github.com/open-mmlab/mmflow)
 
-**v0.5.2** was released in 01/10/2023:
+## 本地部署
 
-- Add flow1d attention
+本项目使用mmflow中的GMA框架在TUBCrowdflow上进行验证，具体部署细节如下:
 
-Please refer to [changelog.md](docs/en/changelog.md) for details and release history.
+### 版本使用
 
-## Installation
+- **CUDA 11.1**
+- **Pytorch 1.8.2**
+- **mmcv-full 1.6.2**
 
-Please refer to [install.md](docs/en/install.md) for installation and
-guidance in [dataset_prepare](docs/en/dataset_prepare.md) for dataset preparation.
-
-## Get Started
-
-If you're new of optical flow, you can start with [learn the basics](docs/en/intro.md). If you’re familiar with it, check out [getting_started](docs/en/getting_started.md) to try out MMFlow.
-
-Refer to the below tutorials to dive deeper:
-
-- [config](docs/en/tutorials/0_config.md)
-
-- [model inference](docs/en/tutorials/1_inference.md)
-
-- [fine tuning](docs/en/tutorials/2_finetune.md)
-
-- [data pipeline](docs/en/tutorials/3_data_pipeline.md)
-
-- [add new modules](docs/en/tutorials/4_new_modules.md)
-
-- [customized runtime](docs/en/tutorials/5_customize_runtime.md)
-
-## Benchmark and model zoo
-
-Results and models are available in the [model zoo](docs/en/model_zoo.md).
-
-Supported methods:
-
-- [x] [FlowNet (ICCV'2015)](configs/flownet/README.md)
-- [x] [FlowNet2 (CVPR'2017)](configs/flownet2/README.md)
-- [x] [PWC-Net (CVPR'2018)](configs/pwcnet/README.md)
-- [x] [LiteFlowNet (CVPR'2018)](configs/liteflownet/README.md)
-- [x] [LiteFlowNet2 (TPAMI'2020)](configs/liteflownet2/README.md)
-- [x] [IRR (CVPR'2019)](configs/irr/README.md)
-- [x] [MaskFlownet (CVPR'2020)](configs/maskflownet/README.md)
-- [x] [RAFT (ECCV'2020)](configs/raft/README.md)
-- [x] [GMA (ICCV' 2021)](configs/gma/README.md)
-
-## Contributing
-
-We appreciate all contributions improving MMFlow. Please refer to [CONTRIBUTING.md](https://github.com/open-mmlab/mmcv/blob/master/CONTRIBUTING.md) in MMCV for more details about the contributing guideline.
-
-## Acknowledgement
-
-MMFlow is an open source project that is contributed by researchers and engineers from various colleges and companies. We appreciate all the contributors who implement their methods or add new features, as well as users who give valuable feedbacks.
-We wish that the toolbox and benchmark could serve the growing research community by providing a flexible toolkit to reimplement existing methods and develop their own new flow algorithm.
-
-## Citation
-
-If you use this toolbox or benchmark in your research, please cite this project.
-
-```BibTeX
-@misc{2021mmflow,
-    title={{MMFlow}: OpenMMLab Optical Flow Toolbox and Benchmark},
-    author={MMFlow Contributors},
-    howpublished = {\url{https://github.com/open-mmlab/mmflow}},
-    year={2021}
-}
-```
-
-## License
-
-This project is released under the [Apache 2.0 license](LICENSE).
-
-## Projects in OpenMMLab
-
-- [MMCV](https://github.com/open-mmlab/mmcv): OpenMMLab foundational library for computer vision.
-- [MIM](https://github.com/open-mmlab/mim): MIM installs OpenMMLab packages.
-- [MMClassification](https://github.com/open-mmlab/mmclassification): OpenMMLab image classification toolbox and benchmark.
-- [MMDetection](https://github.com/open-mmlab/mmdetection): OpenMMLab detection toolbox and benchmark.
-- [MMDetection3D](https://github.com/open-mmlab/mmdetection3d): OpenMMLab's next-generation platform for general 3D object detection.
-- [MMRotate](https://github.com/open-mmlab/mmrotate): OpenMMLab rotated object detection toolbox and benchmark.
-- [MMSegmentation](https://github.com/open-mmlab/mmsegmentation): OpenMMLab semantic segmentation toolbox and benchmark.
-- [MMOCR](https://github.com/open-mmlab/mmocr): OpenMMLab text detection, recognition, and understanding toolbox.
-- [MMPose](https://github.com/open-mmlab/mmpose): OpenMMLab pose estimation toolbox and benchmark.
-- [MMHuman3D](https://github.com/open-mmlab/mmhuman3d): OpenMMLab 3D human parametric model toolbox and benchmark.
-- [MMSelfSup](https://github.com/open-mmlab/mmselfsup): OpenMMLab self-supervised learning toolbox and benchmark.
-- [MMRazor](https://github.com/open-mmlab/mmrazor): OpenMMLab model compression toolbox and benchmark.
-- [MMFewShot](https://github.com/open-mmlab/mmfewshot): OpenMMLab fewshot learning toolbox and benchmark.
-- [MMAction2](https://github.com/open-mmlab/mmaction2): OpenMMLab's next-generation action understanding toolbox and benchmark.
-- [MMTracking](https://github.com/open-mmlab/mmtracking): OpenMMLab video perception toolbox and benchmark.
-- [MMFlow](https://github.com/open-mmlab/mmflow): OpenMMLab optical flow toolbox and benchmark.
-- [MMEditing](https://github.com/open-mmlab/mmediting): OpenMMLab image and video editing toolbox.
-- [MMGeneration](https://github.com/open-mmlab/mmgeneration): OpenMMLab image and video generative models toolbox.
-- [MMDeploy](https://github.com/open-mmlab/mmdeploy): OpenMMLab Model Deployment Framework.
+### 指标结果
+|    序列     |  EPE   |   AE   |   IE    |
+|:---------:|:------:|:------:|:-------:|
+|   IM01    | 0.3626 | 0.1931 | 46.1924 |
+| IM01_hDyn | 0.2858 | 0.1385 | 41.5246 |
+|   IM02    | 0.2304 | 0.1583 | 42.5672 |
+| IM02_hDyn | 0.2121 | 0.1009 | 36.5419 |
+|   IM03    | 1.1019 | 0.4770 | 74.5594 |
+| IM03_hDyn | 2.5980 | 1.0754 | 65.0057 |
+|   IM04    | 2.3496 | 1.0168 | 59.2464 |
+| IM04_hDyn | 2.4622 | 1.0157 | 67.0546 |
+|   IM05    | 3.3653 | 1.1477 | 56.8537 |
+| IM05_hDyn | 6.2401 | 1.1709 | 89.5778 |
