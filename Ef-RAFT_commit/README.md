@@ -74,3 +74,27 @@ If you use this repository for your research or wish to refer to our method, ple
 ### Acknowledgement
 This codebase is heavily borrowed from [RAFT: Recurrent All Pairs Field Transforms for Optical Flow](https://github.com/princeton-vl/RAFT). Thanks for their excellent work.
 
+### TUB数据集测试
+采用ours-things.pth权重效果最优
+
+使用以下命令进行测试：
+```Shell
+python evaluate.py --model=models/ours-things.pth --dataset=TUB --mixed_precision
+```
+
+对不同光流场测试请修改evaluate.py中validate_TUB中valid_dataset初始化参数*name*
+
+得到结果如下
+
+| Flow name | EPE  | AE   | IE    |
+|-----------|------|------|-------|
+| IM01      | 0.44 | 1.47 | 44.44 |
+| IM01_hDyn | 2.64 | 1.47 | 66.26 |
+| IM02      | 0.33 | 1.47 | 42.84 |
+| IM02_hDyn | 2.37 | 1.48 | 68.50 |
+| IM03      | 0.26 | 1.46 | 42.97 |
+| IM03_hDyn | 2.49 | 1.47 | 76.03 |
+| IM04      | 0.26 | 1.52 | 38.06 |
+| IM04_hDyn | 3.38 | 1.52 | 80.58 |
+| IM05      | 1.27 | 1.28 | 67.12 |
+| IM05_hDyn | 6.22 | 1.39 | 84.73 |
