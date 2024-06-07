@@ -226,7 +226,7 @@ def get_args_parser():
     )
 
     parser.add_argument("--debug", action="store_true")
-    parser.add_argument("--tub_IM", type=int, default=1)
+    parser.add_argument("--tub_IM", type=str, default=1)
     parser.add_argument("--tub_root", type=str, default="datasets/tub")
 
     return parser

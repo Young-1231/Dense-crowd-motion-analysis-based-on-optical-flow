@@ -21,6 +21,26 @@ from glob import glob
 from unimatch.geometry import forward_backward_consistency_check
 from utils.file_io import extract_video
 
+def warp_image(image_array: np.ndarray, flow: np.ndarray) -> np.ndarray:
+    """Warp image using the given flow.
+
+    Args:
+        image_array (nparray): nparray of the image with the shape (H , W, 3).
+        flow_pred (nparray): The predicted optical flow with the shape (H, W, 2).
+
+    Returns:
+        image_ndarray (nparray): nparray of the image with the shape (H , W).
+    """
+    h, w = flow.shape[:2]
+    flow_map = np.stack(np.meshgrid(np.arange(w), np.arange(h)), axis=-1) + flow
+    flow_map = np.clip(flow_map, 0, np.array([w - 1, h - 1]))
+    warped_image = np.zeros_like(image_array)
+    for y in range(h):
+        for x in range(w):
+            new_x, new_y = flow_map[y, x].astype(int)
+            warped_image[y, x] = image_array[new_y, new_x]
+    return warped_image
+
 
 @torch.no_grad()
 def create_sintel_submission(
@@ -287,6 +307,7 @@ def validate_tub(
     model.eval()
     epe_list = []
     ae_list = []
+    ie_list = []
     results = {}
 
     if with_speed_metric:
@@ -325,24 +346,43 @@ def validate_tub(
 
         H = flow_pr.size()[-2]
         W = flow_pr.size()[-1]
-        expanded_flow_pr = torch.cat(
-            [flow_pr[0].cpu(), torch.ones((H, W)).unsqueeze(dim=0)], dim=0
-        )
-        expanded_flow_gt = torch.cat(
-            [flow_gt, torch.ones((H, W)).unsqueeze(dim=0)], dim=0
-        )
+        expanded_flow_pr = flow_pr[0].cpu()
+        expanded_flow_gt = flow_gt
+        
 
+
+        ae = torch.acos(torch.clamp(
+            (expanded_flow_pr[0] * expanded_flow_gt[0]
+            + expanded_flow_pr[1] * expanded_flow_gt[1]
+            + 1)
+            /
+            (expanded_flow_pr[0]*expanded_flow_pr[0]+expanded_flow_pr[1]*expanded_flow_pr[1]+1).sqrt()
+            /
+            (expanded_flow_gt[0]*expanded_flow_gt[0]+expanded_flow_gt[1]*expanded_flow_gt[1]+1).sqrt()                  
+            ,0,1)
+            )
+        
+        '''
         ae = torch.acos(
             expanded_flow_pr[0] * expanded_flow_gt[0]
             + expanded_flow_pr[1] * expanded_flow_gt[1]
-            + expanded_flow_pr[2]
-            * expanded_flow_gt[2]
+            + 1
             / (
-                torch.norm(expanded_flow_pr, dim=0)
-                * torch.norm(expanded_flow_gt, dim=0)
+                (expanded_flow_pr[0]*expanded_flow_pr[0]+expanded_flow_pr[1]*expanded_flow_pr[1]+1).sqrt()
+                * (expanded_flow_gt[0]*expanded_flow_gt[0]+expanded_flow_gt[1]*expanded_flow_gt[1]+1).sqrt()
             )
         )
+        '''
+        # print(f"ae:{ae}")
+        
         ae_list.append(ae.view(-1).numpy())
+        
+        image1cpu = image1.squeeze(dim=0).permute(1,2,0).cpu().numpy()
+        image2cpu = image2.squeeze(dim=0).permute(1,2,0).cpu().numpy()
+        image_pr = warp_image(image1cpu, expanded_flow_pr.permute(1,2,0).numpy())
+        ie = np.sqrt((np.mean((image_pr-image2cpu)**2)))
+        ie_list.append(ie.flatten())
+
 
         if with_speed_metric:
             flow_gt_speed = torch.sum(flow_gt**2, dim=0).sqrt()
@@ -372,9 +412,20 @@ def validate_tub(
     results["chairs_3px"] = px3
     results["chairs_5px"] = px5
 
+
     ae_all = np.concatenate(ae_list)
     ae = np.mean(ae_all)
-    print("Validation Crowdflow AE: %.3f" % (ae))
+    print(f"Validation Crowdflow AE:{ae}")
+
+    ie_all = np.concatenate(ie_list)
+    ie = np.mean(ie_all)
+    print(f"Validation Crowdflow IE:{ie}")
+    
+
+
+    
+    with open("log.txt","a") as f:
+        f.write(f"\nIn TUB-IM0{tub_IM}, validation EPE:{epe}, AE:{ae}, IE:{ie}")
 
     if with_speed_metric:
         s0_10 = np.mean(np.concatenate(s0_10_list)) if len(s0_10_list) > 0 else 0
