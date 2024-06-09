@@ -132,13 +132,13 @@ class SpatialAug(object):
         for i in range(50):
             # im0
             self.to_identity()
-            # TODO add mirror
+            #TODO add mirror
             if np.random.binomial(1,0.5):
                 mirror = True
             else:
                 mirror = False
-            ## TODO
-            # mirror = False
+            ##TODO
+            #mirror = False
             if mirror:
                 self.left_multiply(-1, 0, 0, 1, .5 * tw, -.5 * th);
             else:
