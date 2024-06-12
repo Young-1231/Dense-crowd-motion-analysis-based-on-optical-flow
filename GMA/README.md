@@ -67,12 +67,38 @@ MMFlow 是一款基于 PyTorch 的光流工具箱，是 [OpenMMLab](http://openm
 ## 本地部署
 
 本项目使用mmflow中的GMA框架在TUBCrowdflow上进行验证，具体部署细节如下:
+### 1.下载mmflow算法库到本地
+
+### 2.准备数据集
+
+### 3.准备配置文件
+
+mmflow最终训练和测试以读取的配置文件为准，由于本次调用已有网络模型， 其大概可分为三步：读取注册数据集，针对所调用网络的数据集预处理，组装形成配置文件。配置文件详细介绍可参考官方文档[Tutorial 0: Learn about Configs — mmflow documentation](https://mmflow.readthedocs.io/en/latest/tutorials/0_config.html)
+
+### 4.进行测试
+
+tools/test.py中使用argparse模块从外部导入所需参数，主要有三项，其余视具体需求而定：
+
+'config'：测试所需配置文件路径名
+
+'checkpoint'：预训练模型路径，可提前下载放入项目中
+
+'--eval'：测试指标，如'EPE'
+
+在命令行中加入运行文件名称并输入三个参数，或在Pycharm中为test文件编辑配置避免每次运行重复输入，例如：
+
+`configs/gma/gma_TUB_1280x720_my.py checkpoint/gma_8x2_120k_mixed_368x768.pth --eval EPE`
+
+训练同理，参数具体见代码文件介绍。
 
 ### 版本使用
 
 - **CUDA 11.1**
 - **Pytorch 1.8.2**
 - **mmcv-full 1.6.2**
+
+### 使用权重
+- **[gma_8x2_120k_mixed_368x768.pth](checkpoint%2Fgma_8x2_120k_mixed_368x768.pth)**
 
 ### 指标结果
 |    序列     |  EPE   |   AE   |   IE    |
@@ -87,3 +113,22 @@ MMFlow 是一款基于 PyTorch 的光流工具箱，是 [OpenMMLab](http://openm
 | IM04_hDyn | 2.4622 | 1.0157 | 67.0546 |
 |   IM05    | 3.3653 | 1.1477 | 56.8537 |
 | IM05_hDyn | 6.2401 | 1.1709 | 89.5778 |
+
+### 微调后结果
+|    序列     |  EPE   |   AE    |   IE    |
+|:---------:|:------:|:-------:|:-------:|
+|   IM01    | 0.1788 | 0.0831  | 42.0690 |
+|   IM02    | 0.1743 | 0.0733  | 44.6914 |
+|   IM03    | 0.1312 | 0.0898  | 41.6692 |
+|   IM04    | 0.1603 | 0.0662  | 37.0601 |
+|   IM05    | 0.7057 | 0.3525  | 70.8494 |
+
+<video src="/GMA/mmflow/output/finetune_gt.mp4" autoplay="true" controls="controls" width="400" height="200">
+</video>
+
+### 注意
+
+❗ **mmflow/models/flow_estimators/raft.py** **forward
+_train**中取消了valid标记
+
+❗ **mmflow/core/evaluation/metrics.py**中添加了AE、IE指标
