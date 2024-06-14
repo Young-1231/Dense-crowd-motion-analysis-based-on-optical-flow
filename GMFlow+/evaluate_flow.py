@@ -21,6 +21,7 @@ from glob import glob
 from unimatch.geometry import forward_backward_consistency_check
 from utils.file_io import extract_video
 
+
 def warp_image(image_array: np.ndarray, flow: np.ndarray) -> np.ndarray:
     """Warp image using the given flow.
 
@@ -302,7 +303,12 @@ def validate_tub(
     num_reg_refine=1,
     tub_IM=1,
     root="datasets/TUBCrowdFlow",
+    ie_eval=False,
+    generate_video=False,
 ):
+    import time
+    import os
+
     """Perform evaluation on the FlyingChairs (test) split"""
     model.eval()
     epe_list = []
@@ -318,6 +324,13 @@ def validate_tub(
     val_dataset = CrowdFlow(split="validation", root=root, tub_IM=tub_IM)
 
     print("Number of validation image pairs: %d" % len(val_dataset))
+
+    if generate_video:
+        timestamp = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
+        if not os.path.exists("output"):
+            os.makedirs("output")
+        if not os.path.exists(f"output/{timestamp}"):
+            os.makedirs(f"output/{timestamp}")
 
     for val_id in range(len(val_dataset)):
         image1, image2, flow_gt, _ = val_dataset[val_id]
@@ -348,21 +361,34 @@ def validate_tub(
         W = flow_pr.size()[-1]
         expanded_flow_pr = flow_pr[0].cpu()
         expanded_flow_gt = flow_gt
-        
 
+        if generate_video:
+            flow_pr_output = expanded_flow_pr.permute(1, 2, 0).numpy()
+            save_vis_flow_tofile(flow_pr_output, f"output/{timestamp}/{val_id:04d}.png")
 
-        ae = torch.acos(torch.clamp(
-            (expanded_flow_pr[0] * expanded_flow_gt[0]
-            + expanded_flow_pr[1] * expanded_flow_gt[1]
-            + 1)
-            /
-            (expanded_flow_pr[0]*expanded_flow_pr[0]+expanded_flow_pr[1]*expanded_flow_pr[1]+1).sqrt()
-            /
-            (expanded_flow_gt[0]*expanded_flow_gt[0]+expanded_flow_gt[1]*expanded_flow_gt[1]+1).sqrt()                  
-            ,0,1)
+        ae = torch.acos(
+            torch.clamp(
+                (
+                    expanded_flow_pr[0] * expanded_flow_gt[0]
+                    + expanded_flow_pr[1] * expanded_flow_gt[1]
+                    + 1
+                )
+                / (
+                    expanded_flow_pr[0] * expanded_flow_pr[0]
+                    + expanded_flow_pr[1] * expanded_flow_pr[1]
+                    + 1
+                ).sqrt()
+                / (
+                    expanded_flow_gt[0] * expanded_flow_gt[0]
+                    + expanded_flow_gt[1] * expanded_flow_gt[1]
+                    + 1
+                ).sqrt(),
+                0,
+                1,
             )
-        
-        '''
+        )
+
+        """
         ae = torch.acos(
             expanded_flow_pr[0] * expanded_flow_gt[0]
             + expanded_flow_pr[1] * expanded_flow_gt[1]
@@ -372,17 +398,17 @@ def validate_tub(
                 * (expanded_flow_gt[0]*expanded_flow_gt[0]+expanded_flow_gt[1]*expanded_flow_gt[1]+1).sqrt()
             )
         )
-        '''
+        """
         # print(f"ae:{ae}")
-        
-        ae_list.append(ae.view(-1).numpy())
-        
-        image1cpu = image1.squeeze(dim=0).permute(1,2,0).cpu().numpy()
-        image2cpu = image2.squeeze(dim=0).permute(1,2,0).cpu().numpy()
-        image_pr = warp_image(image1cpu, expanded_flow_pr.permute(1,2,0).numpy())
-        ie = np.sqrt((np.mean((image_pr-image2cpu)**2)))
-        ie_list.append(ie.flatten())
 
+        ae_list.append(ae.view(-1).numpy())
+
+        if ie_eval:
+            image1cpu = image1.squeeze(dim=0).permute(1, 2, 0).cpu().numpy()
+            image2cpu = image2.squeeze(dim=0).permute(1, 2, 0).cpu().numpy()
+            image_pr = warp_image(image1cpu, expanded_flow_pr.permute(1, 2, 0).numpy())
+            ie = np.sqrt((np.mean((image_pr - image2cpu) ** 2)))
+            ie_list.append(ie.flatten())
 
         if with_speed_metric:
             flow_gt_speed = torch.sum(flow_gt**2, dim=0).sqrt()
@@ -412,19 +438,18 @@ def validate_tub(
     results["chairs_3px"] = px3
     results["chairs_5px"] = px5
 
-
     ae_all = np.concatenate(ae_list)
     ae = np.mean(ae_all)
     print(f"Validation Crowdflow AE:{ae}")
 
-    ie_all = np.concatenate(ie_list)
-    ie = np.mean(ie_all)
-    print(f"Validation Crowdflow IE:{ie}")
-    
+    if ie_eval:
+        ie_all = np.concatenate(ie_list)
+        ie = np.mean(ie_all)
+        print(f"Validation Crowdflow IE:{ie}")
+    else:
+        ie = "Uncomputed"
 
-
-    
-    with open("log.txt","a") as f:
+    with open("log.txt", "a") as f:
         f.write(f"\nIn TUB-IM0{tub_IM}, validation EPE:{epe}, AE:{ae}, IE:{ie}")
 
     if with_speed_metric:

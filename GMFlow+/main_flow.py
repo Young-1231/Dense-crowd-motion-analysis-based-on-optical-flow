@@ -228,6 +228,8 @@ def get_args_parser():
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--tub_IM", type=str, default=1)
     parser.add_argument("--tub_root", type=str, default="datasets/tub")
+    parser.add_argument("--ie_eval", type=bool, default=False)
+    parser.add_argument("--generate_video", type=bool, default=False)
 
     return parser
 
@@ -376,6 +378,8 @@ def main(args):
                 num_reg_refine=args.num_reg_refine,
                 tub_IM=args.tub_IM,
                 root=args.tub_root,
+                ie_eval=args.ie_eval,
+                generate_video=args.generate_video,
             )
 
             val_results.update(results_dict)
@@ -673,6 +677,22 @@ def main(args):
                         corr_radius_list=args.corr_radius_list,
                         prop_radius_list=args.prop_radius_list,
                         num_reg_refine=args.num_reg_refine,
+                    )
+                    if args.local_rank == 0:
+                        val_results.update(results_dict)
+
+                if "tub" in args.val_dataset:
+                    results_dict = validate_tub(
+                        model_without_ddp,
+                        with_speed_metric=args.with_speed_metric,
+                        attn_type=args.attn_type,
+                        attn_splits_list=args.attn_splits_list,
+                        corr_radius_list=args.corr_radius_list,
+                        prop_radius_list=args.prop_radius_list,
+                        num_reg_refine=args.num_reg_refine,
+                        tub_IM=5 if args.tub_IM == "all_train" else 4,
+                        root=args.tub_root,
+                        ie_eval=args.eval,
                     )
                     if args.local_rank == 0:
                         val_results.update(results_dict)

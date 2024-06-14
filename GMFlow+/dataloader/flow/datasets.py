@@ -221,28 +221,36 @@ class CrowdFlow(FlowDataset):
     ):
         super(CrowdFlow, self).__init__(aug_params)
 
-        images_root = osp.join(root, "images", "IM0" + str(tub_IM))
-        flow_root = osp.join(root, "gt_flow", "IM0" + str(tub_IM))
+        if tub_IM == "all_train" or tub_IM == "1-3":
+            end = 5 if tub_IM == "all_train" else 4
+            for i in range(1, end):
+                images_root = osp.join(root, "images", "IM0" + str(i))
+                flow_root = osp.join(root, "gt_flow", "IM0" + str(i))
 
-        images1 = sorted(glob(osp.join(images_root, "*.png")))[1:]
-        images2 = sorted(glob(osp.join(images_root, "*.png")))[:-1]
-        images = sorted(images1 + images2)
+                images1 = sorted(glob(osp.join(images_root, "*.png")))[1:]
+                images2 = sorted(glob(osp.join(images_root, "*.png")))[:-1]
+                images = sorted(images1 + images2)
 
-        flows = sorted(glob(osp.join(flow_root, "*.flo")))
+                flows = sorted(glob(osp.join(flow_root, "*.flo")))
 
-        assert len(images) // 2 == len(flows)
+                assert len(images) // 2 == len(flows)
 
-        split_file = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "chairs_split.txt"
-        )
-        split_list = np.loadtxt(split_file, dtype=np.int32)
-        for i in range(len(flows)):
-            xid = split_list[i]
-            if (
-                True
-                or (split == "training" and xid == 1)
-                or (split == "validation" and xid == 2)
-            ):
+                for i in range(len(flows)):
+                    self.flow_list += [flows[i]]
+                    self.image_list += [[images[2 * i], images[2 * i + 1]]]
+        else:
+            images_root = osp.join(root, "images", "IM0" + str(tub_IM))
+            flow_root = osp.join(root, "gt_flow", "IM0" + str(tub_IM))
+
+            images1 = sorted(glob(osp.join(images_root, "*.png")))[1:]
+            images2 = sorted(glob(osp.join(images_root, "*.png")))[:-1]
+            images = sorted(images1 + images2)
+
+            flows = sorted(glob(osp.join(flow_root, "*.flo")))
+
+            assert len(images) // 2 == len(flows)
+
+            for i in range(len(flows)):
                 self.flow_list += [flows[i]]
                 self.image_list += [[images[2 * i], images[2 * i + 1]]]
 
@@ -439,6 +447,16 @@ def build_train_dataset(args):
         }
 
         train_dataset = FlyingChairs(aug_params, split="training")
+
+    elif args.stage == "tub":
+        aug_params = {
+            "crop_size": args.image_size,
+            "min_scale": -0.1,
+            "max_scale": 1.0,
+            "do_flip": True,
+        }
+
+        train_dataset = CrowdFlow(aug_params, tub_IM=args.tub_IM, root=args.tub_root)
 
     elif args.stage == "things":
         aug_params = {
