@@ -27,15 +27,13 @@ class FlowDataset(data.Dataset):
                 self.augmentor = FlowAugmentor(**aug_params)
 
         self.is_test = False
-        self.is_validate = False
         self.init_seed = False
         self.flow_list = []
         self.image_list = []
         self.extra_info = []
 
     def __getitem__(self, index):
-        # print('Index is {}'.format(index))
-        # sys.stdout.flush()
+
         if self.is_test:
             img1 = frame_utils.read_gen(self.image_list[index][0])
             img2 = frame_utils.read_gen(self.image_list[index][1])
@@ -45,13 +43,13 @@ class FlowDataset(data.Dataset):
             img2 = torch.from_numpy(img2).permute(2, 0, 1).float()
             return img1, img2, self.extra_info[index]
 
-        # if not self.init_seed:
-        #     worker_info = torch.utils.data.get_worker_info()
-        #     if worker_info is not None:
-        #         torch.manual_seed(worker_info.id)
-        #         np.random.seed(worker_info.id)
-        #         random.seed(worker_info.id)
-        #         self.init_seed = True
+        if not self.init_seed:
+            worker_info = torch.utils.data.get_worker_info()
+            if worker_info is not None:
+                torch.manual_seed(worker_info.id)
+                np.random.seed(worker_info.id)
+                random.seed(worker_info.id)
+                self.init_seed = True
 
         index = index % len(self.image_list)
         valid = None
@@ -69,8 +67,8 @@ class FlowDataset(data.Dataset):
 
         # grayscale images
         if len(img1.shape) == 2:
-            img1 = np.tile(img1[...,None], (1, 1, 3))
-            img2 = np.tile(img2[...,None], (1, 1, 3))
+            img1 = np.tile(img1[..., None], (1, 1, 3))
+            img2 = np.tile(img2[..., None], (1, 1, 3))
         else:
             img1 = img1[..., :3]
             img2 = img2[..., :3]
@@ -90,18 +88,7 @@ class FlowDataset(data.Dataset):
         else:
             valid = (flow[0].abs() < 1000) & (flow[1].abs() < 1000)
 
-        if self.is_validate:
-            return img1, img2, flow, valid.float(), self.extra_info[index]
-        else:
-            return img1, img2, flow, valid.float()
-
-    def getDataWithPath(self, index):
-        img1, img2, flow, valid = self.__getitem__(index)
-
-        imgPath_1 = self.image_list[index][0]
-        imgPath_2 = self.image_list[index][1]
-
-        return img1, img2, flow, valid, imgPath_1, imgPath_2
+        return img1, img2, flow, valid.float()
 
     def __rmul__(self, v):
         self.flow_list = v * self.flow_list
@@ -113,20 +100,26 @@ class FlowDataset(data.Dataset):
 
 
 class TubCrowdFlow(FlowDataset):
-    def __init__(self, aug_params=None, split='training', root='data/TUBCrowdFlow', dstype='IM01'):
+    def __init__(self, aug_params=None, root='data/TUBCrowdFlow', dstype='IM01', dstypes=None):
         super(TubCrowdFlow, self).__init__(aug_params)
 
-        assert dstype in ['IM01', 'IM01_hDyn', 'IM02', 'IM02_hDyn', 'IM03', 'IM03_hDyn', 'IM04', 'IM04_hDyn', 'IM05',
-                          'IM05_hDyn']
+        if dstypes is None:
+            assert dstype in ['IM01', 'IM01_hDyn', 'IM02', 'IM02_hDyn', 'IM03', 'IM03_hDyn', 'IM04', 'IM04_hDyn', 'IM05',
+                              'IM05_hDyn']
+            dstypes = [dstype]
 
-        flow_root = osp.join(root, 'gt_flow', dstype)
-        image_root = osp.join(root, 'images', dstype)
+        flow_root = osp.join(root, 'gt_flow')
+        image_root = osp.join(root, 'images')
 
-        image_list = sorted(glob(osp.join(image_root, '*.png')))
-        for i in range(len(image_list) - 1):
-            self.image_list += [[image_list[i], image_list[i + 1]]]
+        for scene in os.listdir(image_root):
+            if scene not in dstypes:
+                continue
+            image_list = sorted(glob(osp.join(image_root, scene, '*.png')))
+            for i in range(len(image_list) - 1):
+                self.image_list += [[image_list[i], image_list[i + 1]]]
+                self.extra_info += [(scene, i)]  # scene and frame_id
 
-        self.flow_list += sorted(glob(osp.join(flow_root, '*.flo')))
+            self.flow_list += sorted(glob(osp.join(flow_root, scene, '*.flo')))
 
 
 class MpiSintel(FlowDataset):
@@ -267,6 +260,13 @@ def fetch_dataloader(args, TRAIN_DS='C+T+K/S'):
     elif args.stage == 'kitti':
         aug_params = {'crop_size': args.image_size, 'min_scale': -0.2, 'max_scale': 0.4, 'do_flip': False}
         train_dataset = KITTI(aug_params, split='training')
+
+    elif args.stage == 'tub':
+        # aug_params = {'crop_size': args.image_size, 'min_scale': -0.2, 'max_scale': 0.4, 'do_flip': False}
+        # aug_params = {'crop_size': args.image_size, 'min_scale': -0.1, 'max_scale': 0.6, 'do_flip': True}
+        aug_params = None
+        train_dataset = TubCrowdFlow(dstypes=['IM01', 'IM02', 'IM03', 'IM04'])
+
 
     train_loader = data.DataLoader(train_dataset, batch_size=args.batch_size,
         pin_memory=False, shuffle=True, num_workers=4, drop_last=True)

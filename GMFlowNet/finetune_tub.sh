@@ -1,0 +1,1 @@
+python -u finetune_gmflownet.py --model gmflownet --name gmflownet-tub --stage tub --validation tub --restore_ckpt checkpoints/35000_gmflownet-tub.pth --gpus 0 --num_steps 50000 --batch_size 1 --lr 0.0001 --image_size 720 1280 --wdecay 0.0001
