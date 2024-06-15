@@ -221,26 +221,11 @@ class CrowdFlow(FlowDataset):
     ):
         super(CrowdFlow, self).__init__(aug_params)
 
-        if tub_IM == "all_train" or tub_IM == "1-3":
-            end = 5 if tub_IM == "all_train" else 4
-            for i in range(1, end):
-                images_root = osp.join(root, "images", "IM0" + str(i))
-                flow_root = osp.join(root, "gt_flow", "IM0" + str(i))
+        IM_list = list(tub_IM)
 
-                images1 = sorted(glob(osp.join(images_root, "*.png")))[1:]
-                images2 = sorted(glob(osp.join(images_root, "*.png")))[:-1]
-                images = sorted(images1 + images2)
-
-                flows = sorted(glob(osp.join(flow_root, "*.flo")))
-
-                assert len(images) // 2 == len(flows)
-
-                for i in range(len(flows)):
-                    self.flow_list += [flows[i]]
-                    self.image_list += [[images[2 * i], images[2 * i + 1]]]
-        else:
-            images_root = osp.join(root, "images", "IM0" + str(tub_IM))
-            flow_root = osp.join(root, "gt_flow", "IM0" + str(tub_IM))
+        for IM_id in IM_list:
+            images_root = osp.join(root, "images", "IM0" + str(IM_id))
+            flow_root = osp.join(root, "gt_flow", "IM0" + str(IM_id))
 
             images1 = sorted(glob(osp.join(images_root, "*.png")))[1:]
             images2 = sorted(glob(osp.join(images_root, "*.png")))[:-1]

@@ -690,7 +690,7 @@ def main(args):
                         corr_radius_list=args.corr_radius_list,
                         prop_radius_list=args.prop_radius_list,
                         num_reg_refine=args.num_reg_refine,
-                        tub_IM=5 if args.tub_IM == "all_train" else 4,
+                        tub_IM=((set(map(str, range(1, 6))) - set(args.tub_IM)).pop()),
                         root=args.tub_root,
                         ie_eval=args.eval,
                     )
