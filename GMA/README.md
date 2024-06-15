@@ -123,7 +123,13 @@ tools/test.py中使用argparse模块从外部导入所需参数，主要有三�
 |   IM04    | 0.1603 | 0.0662  | 37.0601 |
 |   IM05    | 0.7057 | 0.3525  | 70.8494 |
 
-[![origin finetune](https://i.ytimg.com/vi/6ctVJZZqtyE/maxresdefault.jpg)](https://www.youtube.com/watch?v=6ctVJZZqtyE "origin finetune")
+[![origin finetune](https://i.ytimg.com/vi/6ctVJZZqtyE/maxresdefault.jpg)](https://www.youtube.com/watch?v=6ct
+
+<video controls width="600">
+  <source src="https://github.com/zhengcyyy/Dense-crowd-motion-analysis-based-on-optical-flow/raw/main/GMA/mmflow/output/finetune_gt.mp4
+" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ### 注意
 
