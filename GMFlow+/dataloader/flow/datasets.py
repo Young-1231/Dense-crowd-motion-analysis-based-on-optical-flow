@@ -223,9 +223,15 @@ class CrowdFlow(FlowDataset):
 
         IM_list = list(tub_IM)
 
+        if "D" in IM_list:
+            IM_list.remove("D")
+            suffix = "_hDyn"
+        else:
+            suffix = ""
+
         for IM_id in IM_list:
-            images_root = osp.join(root, "images", "IM0" + str(IM_id))
-            flow_root = osp.join(root, "gt_flow", "IM0" + str(IM_id))
+            images_root = osp.join(root, "images", "IM0" + str(IM_id) + suffix)
+            flow_root = osp.join(root, "gt_flow", "IM0" + str(IM_id) + suffix)
 
             images1 = sorted(glob(osp.join(images_root, "*.png")))[1:]
             images2 = sorted(glob(osp.join(images_root, "*.png")))[:-1]
