@@ -253,7 +253,7 @@ class WuhanMetro(FlowDataset):
         split="train",
         root="datasets/WuhanMetro",
     ):
-        super(CrowdFlow, self).__init__(aug_params)
+        super(WuhanMetro, self).__init__(aug_params)
 
         images_root = osp.join(root, "transfer-image")
         flow_root = osp.join(root, "transfer-flow-t")

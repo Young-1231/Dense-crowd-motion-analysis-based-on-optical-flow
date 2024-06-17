@@ -221,8 +221,42 @@ class CrowdFlow(FlowDataset):
     ):
         super(CrowdFlow, self).__init__(aug_params)
 
-        images_root = osp.join(root, "images", "IM0" + str(tub_IM))
-        flow_root = osp.join(root, "gt_flow", "IM0" + str(tub_IM))
+        IM_list = list(tub_IM)
+
+        if "D" in IM_list:
+            IM_list.remove("D")
+            suffix = "_hDyn"
+        else:
+            suffix = ""
+
+        for IM_id in IM_list:
+            images_root = osp.join(root, "images", "IM0" + str(IM_id) + suffix)
+            flow_root = osp.join(root, "gt_flow", "IM0" + str(IM_id) + suffix)
+
+            images1 = sorted(glob(osp.join(images_root, "*.png")))[1:]
+            images2 = sorted(glob(osp.join(images_root, "*.png")))[:-1]
+            images = sorted(images1 + images2)
+
+            flows = sorted(glob(osp.join(flow_root, "*.flo")))
+
+            assert len(images) // 2 == len(flows)
+
+            for i in range(len(flows)):
+                self.flow_list += [flows[i]]
+                self.image_list += [[images[2 * i], images[2 * i + 1]]]
+
+
+class WuhanMetro(FlowDataset):
+    def __init__(
+        self,
+        aug_params=None,
+        split="train",
+        root="datasets/WuhanMetro",
+    ):
+        super(WuhanMetro, self).__init__(aug_params)
+
+        images_root = osp.join(root, "transfer-image")
+        flow_root = osp.join(root, "transfer-flow-t")
 
         images1 = sorted(glob(osp.join(images_root, "*.png")))[1:]
         images2 = sorted(glob(osp.join(images_root, "*.png")))[:-1]
@@ -232,17 +266,16 @@ class CrowdFlow(FlowDataset):
 
         assert len(images) // 2 == len(flows)
 
-        split_file = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "chairs_split.txt"
-        )
-        split_list = np.loadtxt(split_file, dtype=np.int32)
-        for i in range(len(flows)):
-            xid = split_list[i]
-            if (
-                True
-                or (split == "training" and xid == 1)
-                or (split == "validation" and xid == 2)
-            ):
+        train_test_split = 0.8
+        train_len = int(len(flows) * train_test_split)
+        test_len = len(flows) - train_len
+
+        if split == "train":
+            for i in range(train_len):
+                self.flow_list += [flows[i]]
+                self.image_list += [[images[2 * i], images[2 * i + 1]]]
+        elif split == "test":
+            for i in range(train_len, len(flows)):
                 self.flow_list += [flows[i]]
                 self.image_list += [[images[2 * i], images[2 * i + 1]]]
 
@@ -439,6 +472,26 @@ def build_train_dataset(args):
         }
 
         train_dataset = FlyingChairs(aug_params, split="training")
+
+    elif args.stage == "tub":
+        aug_params = {
+            "crop_size": args.image_size,
+            "min_scale": -0.1,
+            "max_scale": 1.0,
+            "do_flip": True,
+        }
+
+        train_dataset = CrowdFlow(aug_params, tub_IM=args.tub_IM, root=args.tub_root)
+
+    elif args.stage == "wuhan":
+        aug_params = {
+            "crop_size": args.image_size,
+            "min_scale": -0.1,
+            "max_scale": 1.0,
+            "do_flip": True,
+        }
+
+        train_dataset = WuhanMetro(split="train", root=args.tub_root)
 
     elif args.stage == "things":
         aug_params = {
