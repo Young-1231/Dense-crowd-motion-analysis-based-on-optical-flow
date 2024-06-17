@@ -109,5 +109,5 @@ for root, dirs, files in os.walk(root_path):
     for file in files:
         if file.endswith('.ts'):
             dir_path = os.path.join(root, file.split('.')[0])
-            out_path = dir_path
+            out_path = os.path.join(dir_path, 'flow')
             output_flow(dir_path, out_path, method='t', suffix='png')
