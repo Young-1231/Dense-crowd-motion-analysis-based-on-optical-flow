@@ -246,6 +246,40 @@ class CrowdFlow(FlowDataset):
                 self.image_list += [[images[2 * i], images[2 * i + 1]]]
 
 
+class WuhanMetro(FlowDataset):
+    def __init__(
+        self,
+        aug_params=None,
+        split="train",
+        root="datasets/WuhanMetro",
+    ):
+        super(CrowdFlow, self).__init__(aug_params)
+
+        images_root = osp.join(root, "transfer-image")
+        flow_root = osp.join(root, "transfer-flow-t")
+
+        images1 = sorted(glob(osp.join(images_root, "*.png")))[1:]
+        images2 = sorted(glob(osp.join(images_root, "*.png")))[:-1]
+        images = sorted(images1 + images2)
+
+        flows = sorted(glob(osp.join(flow_root, "*.flo")))
+
+        assert len(images) // 2 == len(flows)
+
+        train_test_split = 0.8
+        train_len = int(len(flows) * train_test_split)
+        test_len = len(flows) - train_len
+
+        if split == "train":
+            for i in range(train_len):
+                self.flow_list += [flows[i]]
+                self.image_list += [[images[2 * i], images[2 * i + 1]]]
+        elif split == "test":
+            for i in range(train_len, len(flows)):
+                self.flow_list += [flows[i]]
+                self.image_list += [[images[2 * i], images[2 * i + 1]]]
+
+
 class FlyingThings3D(FlowDataset):
     def __init__(
         self,
@@ -448,6 +482,16 @@ def build_train_dataset(args):
         }
 
         train_dataset = CrowdFlow(aug_params, tub_IM=args.tub_IM, root=args.tub_root)
+
+    elif args.stage == "wuhan":
+        aug_params = {
+            "crop_size": args.image_size,
+            "min_scale": -0.1,
+            "max_scale": 1.0,
+            "do_flip": True,
+        }
+
+        train_dataset = WuhanMetro(split="train", root=args.tub_root)
 
     elif args.stage == "things":
         aug_params = {
