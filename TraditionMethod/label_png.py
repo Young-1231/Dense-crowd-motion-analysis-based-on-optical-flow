@@ -91,17 +91,18 @@ def output_flow(_dir_path, _out_path, method='t', suffix='png'):
         img1 = cv2.imread(images[2 * i], cv2.IMREAD_GRAYSCALE)
         img2 = cv2.imread(images[2 * i + 1], cv2.IMREAD_GRAYSCALE)
 
-        # 计算光流
-        flow = compute_flow(img1, img2, method)
+        if not os.path.exists(osp.join(_out_path, f'flow_{i+1:04d}.flo')):
+            # 计算光流
+            flow = compute_flow(img1, img2, method)
 
-        # 保存光流
-        write_flow(osp.join(_out_path, f'flow_{i+1:04d}.flo'), flow)
+            # 保存光流
+            write_flow(osp.join(_out_path, f'flow_{i+1:04d}.flo'), flow)
 
-        # 提取光流
-        image = flow_to_image(flow)
-        vi_flow = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)  # OpenCV使用BGR格式，所以要转换一下
-        # 显示结果
-        cv2.imwrite(osp.join(_out_path, f'flow_{i+1:04d}.png'), vi_flow)
+            # 提取光流
+            image = flow_to_image(flow)
+            vi_flow = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)  # OpenCV使用BGR格式，所以要转换一下
+            # 显示结果
+            cv2.imwrite(osp.join(_out_path, f'flow_{i+1:04d}.png'), vi_flow)
 
 
 root_path = 'E:/data/Wuhan_Metro/'
