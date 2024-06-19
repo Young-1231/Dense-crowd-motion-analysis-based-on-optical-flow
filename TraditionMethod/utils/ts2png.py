@@ -2,7 +2,7 @@ import subprocess
 import os
 
 
-def extract_frames(_video_path, _output_dir, duration=200, fps=4):
+def extract_frames(_video_path, _output_dir, duration=30, fps=25):
     os.makedirs(_output_dir, exist_ok=True)
 
     output_pattern = os.path.join(_output_dir, 'frame_%04d.png')
