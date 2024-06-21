@@ -40,24 +40,28 @@ def convert(json_file):
 
     shapes = data["shapes"]
 
-    background = np.zeros((data["imageHeight"], data["imageWidth"]), dtype=np.uint8)
+    background = np.zeros((data["imageHeight"], data["imageWidth"], 2), dtype=np.int8)
 
     for shape in shapes:
         polygon = shape["points"]
         mask = create_mask((data["imageHeight"], data["imageWidth"]), polygon)
 
+        # expand
+        mask_bool = mask.astype(bool)
+        format_mask = np.zeros_like(background)
+
         if shape["label"] == "up":
-            flag = 1
+            flag = np.array([0, 1])
         elif shape["label"] == "down":
-            flag = 2
+            flag = np.array([0, -1])
         elif shape["label"] == "left":
-            flag = 3
+            flag = np.array([1, 0])
         elif shape["label"] == "right":
-            flag = 4
+            flag = np.array([-1, 0])
         else:
             raise ValueError(f"Unknown label: {shape['label']}")
 
-        format_mask = mask * flag
+        format_mask[mask_bool] = flag
 
         background += format_mask
 
@@ -65,14 +69,15 @@ def convert(json_file):
 
 
 def main(args):
-    files = glob(os.path.join(args.json_file_folder, "*.json"))
+    files = glob(os.path.join(args.folder, "*.json"))
     if not files:
-        raise ValueError(f"No JSON files found in {args.json_file_folder}")
+        raise ValueError(f"No JSON files found in {args.folder}")
 
     print("转换开始...")
 
     for file in tqdm(files):
         mask = convert(file)
+        print(mask)
         np.save(file.replace(".json", ".npy"), mask)
 
     print("转换完成！")
@@ -81,7 +86,12 @@ def main(args):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("json_file_folder", type=str, help="Path to the JSON file")
+    parser.add_argument(
+        "--folder",
+        type=str,
+        default="E:/E盘/模式识别课设/jhroad_label",
+        help="Path to the JSON file",
+    )
     args = parser.parse_args()
 
     main(args)
