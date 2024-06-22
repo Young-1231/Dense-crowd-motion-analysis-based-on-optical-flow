@@ -58,7 +58,7 @@ def convert(json_file):
         mask_bool = mask.astype(bool)
         format_mask = np.zeros_like(direction)
 
-        if shape["label"] == "up":
+        if shape["label"] == "top" or shape["label"] == "up":
             flag = np.array([0, 1])
         elif shape["label"] == "down":
             flag = np.array([0, -1])
