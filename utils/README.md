@@ -24,4 +24,10 @@ python utils/label_reader.py {JSON_FOLDER}
 python utils/ts2png.py E:/data/Wuhan_Metro/
 ```
 
+## visualizeJson.py
+将labelme的标注数据可视化，输出每帧图片和视频。
 
+用法示例：
+```sh
+python utils/ts2png.py E:/data/Wuhan_Metro/江汉路-厅东闸机2-2-20231231170000-20231231203000-29254227/
+```
