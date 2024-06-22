@@ -6,7 +6,6 @@ import argparse
 import os
 from glob import glob
 from tqdm import tqdm
-import pickle
 
 
 def create_mask(image_shape, polygon):
@@ -40,23 +39,16 @@ def convert(json_file):
         data = json.load(f)
 
     shapes = data["shapes"]
-    picture_name = data["imagePath"]
 
-    direction = np.zeros((data["imageHeight"], data["imageWidth"], 2), dtype=np.int8)
-    id = np.zeros((data["imageHeight"], data["imageWidth"]), dtype=np.int8)
+    background = np.zeros((data["imageHeight"], data["imageWidth"], 2), dtype=np.int8)
 
-    num_shapes = len(shapes)
-
-    shape_id = 0
     for shape in shapes:
-        shape_id += 1
-
         polygon = shape["points"]
         mask = create_mask((data["imageHeight"], data["imageWidth"]), polygon)
 
         # expand
         mask_bool = mask.astype(bool)
-        format_mask = np.zeros_like(direction)
+        format_mask = np.zeros_like(background)
 
         if shape["label"] == "up":
             flag = np.array([0, 1])
@@ -70,23 +62,10 @@ def convert(json_file):
             raise ValueError(f"Unknown label: {shape['label']}")
 
         format_mask[mask_bool] = flag
-        id[mask_bool] = shape_id
 
-        direction += format_mask
+        background += format_mask
 
-    return direction, num_shapes, id, picture_name
-
-
-def pack_label(json_file):
-    direction, num_shapes, id, picture_name = convert(json_file)
-    label = {}
-    label["data"] = direction
-    label["num_shapes"] = num_shapes
-    label["id"] = id
-    label["shape"] = direction.shape
-    label["picture_name"] = picture_name
-
-    return label
+    return background
 
 
 def main(args):
@@ -97,9 +76,12 @@ def main(args):
     print("转换开始...")
 
     for file in tqdm(files):
-        label = pack_label(file)
-        with open(file.replace(".json", ".pkl"), "wb") as f:
-            pickle.dump(label, f)
+        mask = convert(file)
+        # print(mask)
+        # plt.imshow(mask[:, :, 1])
+        # plt.show()
+        np.save(file.replace(".json", ".npy"), mask)
+
     print("转换完成！")
 
 

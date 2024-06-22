@@ -77,15 +77,18 @@ def convert(json_file):
     return direction, num_shapes, id, picture_name
 
 
+class Label:
+    def __init__(self, direction, num_shapes, id, picture_name):
+        self.direction = direction
+        self.num_shapes = num_shapes
+        self.id = id
+        self.shape = direction.shape
+        self.picture_name = picture_name
+
+
 def pack_label(json_file):
     direction, num_shapes, id, picture_name = convert(json_file)
-    label = {}
-    label["data"] = direction
-    label["num_shapes"] = num_shapes
-    label["id"] = id
-    label["shape"] = direction.shape
-    label["picture_name"] = picture_name
-
+    label = Label(direction, num_shapes, id, picture_name)
     return label
 
 
@@ -97,9 +100,12 @@ def main(args):
     print("转换开始...")
 
     for file in tqdm(files):
-        label = pack_label(file)
-        with open(file.replace(".json", ".pkl"), "wb") as f:
-            pickle.dump(label, f)
+        mask = convert(file)
+        # print(mask)
+        # plt.imshow(mask[:, :, 1])
+        # plt.show()
+        np.save(file.replace(".json", ".npy"), mask)
+
     print("转换完成！")
 
 
