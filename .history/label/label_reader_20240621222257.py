@@ -77,9 +77,9 @@ def main(args):
 
     for file in tqdm(files):
         mask = convert(file)
-        # print(mask)
-        # plt.imshow(mask[:, :, 1])
-        # plt.show()
+        print(mask)
+        plt.imshow(mask[:, :, 1])
+        plt.show()
         np.save(file.replace(".json", ".npy"), mask)
 
     print("转换完成！")
