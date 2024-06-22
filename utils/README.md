@@ -1,4 +1,5 @@
 # 小工具
+
 ## concat_n_video.py
 从多个输入视频生成一个视频。
 
@@ -14,3 +15,13 @@ python utils/concat_n_video.py video1.mp4 video2.mp4 video3.mp4 --output output.
 ```sh
 python utils/label_reader.py {JSON_FOLDER}
 ```
+
+## ts2png.py
+将ts文件转换为png图片。
+
+用法示例：
+```sh
+python utils/ts2png.py E:/data/Wuhan_Metro/
+```
+
+
