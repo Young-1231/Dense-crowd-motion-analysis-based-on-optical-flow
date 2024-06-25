@@ -95,22 +95,11 @@ def main(args):
         raise ValueError(f"No JSON files found in {args.folder}")
 
     print("转换开始...")
-    label_list = []
 
     for file in tqdm(files):
         label = pack_label(file)
-        if args.pack:
-            label_list.append(label)
-        else:
-            with open(file.replace(".json", ".pkl"), "wb") as f:
-                pickle.dump(label, f)
-
-    if args.pack:
-        path = args.folder
-        _, tail = os.path.split(path)
-        with open(os.path.join(args.folder, f"{tail}.pkl"), "wb") as f:
-            pickle.dump(label_list, f)
-
+        with open(file.replace(".json", ".pkl"), "wb") as f:
+            pickle.dump(label, f)
     print("转换完成！")
 
 

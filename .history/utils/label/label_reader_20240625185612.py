@@ -106,9 +106,7 @@ def main(args):
                 pickle.dump(label, f)
 
     if args.pack:
-        path = args.folder
-        _, tail = os.path.split(path)
-        with open(os.path.join(args.folder, f"{tail}.pkl"), "wb") as f:
+        with open(os.path.join(args.folder, "label.pkl"), "wb") as f:
             pickle.dump(label_list, f)
 
     print("转换完成！")
