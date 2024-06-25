@@ -223,7 +223,7 @@ class TUB(FlowDataset):
 
 
 class WHMetro(FlowDataset):
-    def __init__(self, aug_params=None, root='./autodl-tmp/transfer-tradition-dataset', seq_name='transfer-flow-t',name='train'):
+    def __init__(self, aug_params=None, root='', seq_name='transfer-flow-t',name='train'):
         super(WHMetro, self).__init__(aug_params, sparse=False)
         if name == 'test':
             images = sorted(glob(os.path.join(root, 'transfer-image', '*.png')))
