@@ -18,7 +18,7 @@ from torch.utils.data import DataLoader
 from raft import RAFT
 import evaluate
 import datasets
-
+import pdb
 from torch.utils.tensorboard import SummaryWriter
 
 try:
@@ -53,7 +53,7 @@ def sequence_loss(flow_preds, flow_gt, valid, gamma=0.8, max_flow=MAX_FLOW):
     # exlude invalid pixels and extremely large diplacements
     mag = torch.sum(flow_gt**2, dim=1).sqrt()
     valid = (valid >= 0.5) & (mag < max_flow)
-
+    # pdb.set_trace()
     for i in range(n_predictions):
         i_weight = gamma**(n_predictions - i - 1)
         i_loss = (flow_preds[i] - flow_gt).abs()
@@ -124,7 +124,7 @@ class Logger:
 
     def write_dict(self, results):
         if self.writer is None:
-            self.writer = SummaryWriter()
+            self.writer = SummaryWriter(log_dir='./tf-logs')
 
         for key in results:
             self.writer.add_scalar(key, results[key], self.total_steps)
@@ -194,6 +194,8 @@ def train(args):
                         results.update(evaluate.validate_sintel(model.module))
                     elif val_dataset == 'kitti':
                         results.update(evaluate.validate_kitti(model.module))
+                    elif val_dataset == 'TUB':
+                        results.update(evaluate.validate_TUB(model.module))
 
                 logger.write_dict(results)
                 
@@ -213,7 +215,76 @@ def train(args):
 
     return PATH
 
+def finetune(args):
+    model = nn.DataParallel(RAFT(args), device_ids=args.gpus)
+    model.load_state_dict(torch.load(args.restore_ckpt), strict=False)
+    model.cuda()
+    model.train()
 
+    if args.stage != 'chairs':
+        model.module.freeze_bn()
+
+    train_loader = datasets.fetch_dataloader(args)
+    optimizer, scheduler = fetch_optimizer(args, model)
+
+    total_steps = 0
+    scaler = GradScaler(enabled=args.mixed_precision)
+    logger = Logger(model, scheduler)
+
+    VAL_FREQ = 5000
+
+    should_keep_training = True
+    while should_keep_training:
+
+        for i_batch, data_blob in enumerate(train_loader):
+            optimizer.zero_grad()
+            image1, image2, flow, valid = [x.cuda() for x in data_blob]
+
+            if args.add_noise:
+                stdv = np.random.uniform(0.0, 5.0)
+                image1 = (image1 + stdv * torch.randn(*image1.shape).cuda()).clamp(0.0, 255.0)
+                image2 = (image2 + stdv * torch.randn(*image2.shape).cuda()).clamp(0.0, 255.0)
+
+            flow_predictions = model(image1, image2, iters=args.iters)
+
+            loss, metrics = sequence_loss(flow_predictions, flow, valid, args.gamma)
+            scaler.scale(loss).backward()
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip)
+
+            scaler.step(optimizer)
+            scheduler.step()
+            scaler.update()
+
+            logger.push(metrics)
+
+            if total_steps % VAL_FREQ == VAL_FREQ - 1:
+                PATH = 'checkpoints/%d_%s.pth' % (total_steps+1, args.name)
+                torch.save(model.state_dict(), PATH)
+
+                results = {}
+                for val_dataset in args.validation:
+                    if val_dataset == 'chairs':
+                        results.update(evaluate.validate_chairs(model.module))
+                    elif val_dataset == 'sintel':
+                        results.update(evaluate.validate_sintel(model.module))
+                    elif val_dataset == 'kitti':
+                        results.update(evaluate.validate_kitti(model.module))
+                    elif val_dataset == 'TUB':
+                        results.update(evaluate.validate_TUB(model.module))
+                    elif val_dataset == 'WHMetro':
+                        results.update(evaluate.WHMetro(model.module))
+                        
+                logger.write_dict(results)
+
+                model.train()
+                if args.stage != 'chairs':
+                    model.module.freeze_bn()
+            total_steps += 1
+
+            if total_steps > args.num_steps:
+                should_keep_training = False
+                break
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', default='raft', help="name your experiment")
@@ -221,6 +292,7 @@ if __name__ == '__main__':
     parser.add_argument('--restore_ckpt', help="restore checkpoint")
     parser.add_argument('--small', action='store_true', help='use small model')
     parser.add_argument('--validation', type=str, nargs='+')
+    parser.add_argument('--train_mode', type=str, help='finetune or train new')
 
     parser.add_argument('--lr', type=float, default=0.00002)
     parser.add_argument('--num_steps', type=int, default=100000)
@@ -244,4 +316,7 @@ if __name__ == '__main__':
     if not os.path.isdir('checkpoints'):
         os.mkdir('checkpoints')
 
-    train(args)
+    if args.train_mode == 'train':
+        train(args)
+    elif args.train_mode == 'finetune':
+        finetune(args)
