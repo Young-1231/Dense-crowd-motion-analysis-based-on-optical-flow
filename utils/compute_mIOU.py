@@ -7,7 +7,6 @@ from glob import glob
 from tqdm import tqdm
 import argparse
 
-
 def compute_mIOU(flow, gt):
     # 统一大小
     if flow.shape != gt.shape:
