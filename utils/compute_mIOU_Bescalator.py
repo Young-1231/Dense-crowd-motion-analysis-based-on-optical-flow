@@ -12,13 +12,16 @@ def compute_mIOU(flow, gt):
     if flow.shape != gt.shape:
         flow = cv2.resize(flow, (gt.shape[1], gt.shape[0]))
     # 将flow向量转换为方向在上下、左右各有一个主方向
+    flow_mask = np.linalg.norm(flow, axis=2) > 1e-3
+    vertical_main_mask = np.abs(flow[:, :, 1]) > np.abs(flow[:, :, 0])
+    horizontal_main_mask = ~vertical_main_mask
     vertical_mask = flow[:, :, 1] > 0
     horizontal_mask = flow[:, :, 0] > 0
     flow_direction = np.zeros_like(flow)
-    flow_direction[vertical_mask, 1] = 1
-    flow_direction[~vertical_mask, 1] = -1
-    flow_direction[horizontal_mask, 0] = 1
-    flow_direction[~horizontal_mask, 0] = -1
+    flow_direction[np.logical_and(flow_mask,vertical_mask), 1] = 1
+    flow_direction[np.logical_and(flow_mask,~vertical_mask), 1] = -1
+    flow_direction[np.logical_and(flow_mask,horizontal_mask), 0] = 1
+    flow_direction[np.logical_and(flow_mask,~horizontal_mask), 0] = -1
     # 计算flow区域与gt区域每一类的交并比
     intersaction1 = np.logical_and(flow_direction[:, :, 0] == 1, gt[:, :, 0] == 1)
     union1 = np.logical_or(flow_direction[:, :, 0] == 1, gt[:, :, 0] == 1)
