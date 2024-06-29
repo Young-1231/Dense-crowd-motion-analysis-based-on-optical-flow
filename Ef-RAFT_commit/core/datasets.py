@@ -4,7 +4,7 @@ import numpy as np
 import torch
 import torch.utils.data as data
 import torch.nn.functional as F
-
+import pdb
 import os
 import math
 import random
@@ -196,21 +196,65 @@ class HD1K(FlowDataset):
 
 
 class TUB(FlowDataset):
-    def __init__(self, aug_params=None, root='datasets/TUB', name='IM01'):
+    def __init__(self, aug_params=None, root='./autodl-tmp/datasets/TUB', name='IM01'):
         super(TUB, self).__init__(aug_params, sparse=False)
         if name not in ['IM01', 'IM01_hDyn', 'IM02', 'IM02_hDyn', 'IM03', 'IM03_hDyn', 'IM04', 'IM04_hDyn', 'IM05',
-                        'IM05_hDyn']:
+                        'IM05_hDyn', 'validation']:
             raise ValueError('Invalid sequence name')
+        if name == 'validation':
+            # random choice 100 pic in IM01-IM05
+            for i in range(100):
+                seq = random.choice(['IM01', 'IM02', 'IM03', 'IM04', 'IM05'])
+                images = sorted(glob(os.path.join(root, seq, 'images', '*.png')))
+                flows = sorted(glob(os.path.join(root, seq, 'gt_flow', '*.flo')))
+                j = random.choice(range(len(images) - 1))
+                self.flow_list += [flows[j]]
+                self.image_list += [[images[j], images[j + 1]]]
+        else:            
+            flows = sorted(glob(os.path.join(root, name, 'gt_flow', '*.flo')))
+            images = sorted(glob(os.path.join(root, name, 'images', '*.png')))
 
-        flows = sorted(glob(os.path.join(root, name, 'gt_flow', '*.flo')))
-        images = sorted(glob(os.path.join(root, name, 'images', '*.png')))
+            if len(flows) == 0:
+                raise ValueError(f'No flows found for sequence {name}')
 
-        if len(flows) == 0:
-            raise ValueError(f'No flows found for sequence {name}')
+            for i in range(len(flows) - 1):
+                self.flow_list += [flows[i]]
+                self.image_list += [[images[i], images[i + 1]]]
 
-        for i in range(len(flows) - 1):
-            self.flow_list += [flows[i]]
-            self.image_list += [[images[i], images[i + 1]]]
+
+class WHMetro(FlowDataset):
+    def __init__(self, aug_params=None, root='', seq_name='transfer-flow-t',name='train'):
+        super(WHMetro, self).__init__(aug_params, sparse=False)
+        if name == 'test':
+            images = sorted(glob(os.path.join(root, 'transfer-image', '*.png')))
+            flows = sorted(glob(os.path.join(root, seq_name, '*.flo')))
+
+            if len(images) == 0:
+                raise ValueError(f'No flows found for sequence {name}')
+
+            for i in range(len(images) - 101,len(images) - 1):
+                self.flow_list += [flows[i]]
+                self.image_list += [[images[i], images[i + 1]]]
+        elif name == 'train':
+            images = sorted(glob(os.path.join(root, 'transfer-image', '*.png')))
+            flows = sorted(glob(os.path.join(root, seq_name, '*.flo')))
+
+            if len(images) == 0:
+                raise ValueError(f'No flows found for sequence {name}')
+
+            for i in range(len(images) - 101):
+                self.flow_list += [flows[i]]
+                self.image_list += [[images[i], images[i + 1]]]
+        elif name == 'all':
+            images = sorted(glob(os.path.join(root, 'transfer-image', '*.png')))
+            flows = sorted(glob(os.path.join(root, seq_name, '*.flo')))
+
+            if len(images) == 0:
+                raise ValueError(f'No flows found for sequence {name}')
+
+            for i in range(len(images) - 1):
+                self.flow_list += [flows[i]]
+                self.image_list += [[images[i], images[i + 1]]]
 
 
 def fetch_dataloader(args, TRAIN_DS='C+T+K+S+H'):
@@ -219,6 +263,20 @@ def fetch_dataloader(args, TRAIN_DS='C+T+K+S+H'):
     if args.stage == 'chairs':
         aug_params = {'crop_size': args.image_size, 'min_scale': -0.1, 'max_scale': 1.0, 'do_flip': True}
         train_dataset = FlyingChairs(aug_params, split='training')
+
+    elif args.stage == 'TUB':
+        aug_params = {'crop_size': args.image_size, 'min_scale': -0.1, 'max_scale': 1, 'do_flip': False}
+        TUB1 = TUB(aug_params, name='IM01')
+        TUB2 = TUB(aug_params, name='IM02')
+        TUB3 = TUB(aug_params, name='IM03')
+        TUB4 = TUB(aug_params, name='IM04')
+        TUB5 = TUB(aug_params, name='IM05')
+
+        train_dataset = TUB5 + TUB1 + TUB2 + TUB3
+    
+    elif args.stage == 'WHMetro':
+        aug_params = {'crop_size': args.image_size, 'min_scale': -0.1, 'max_scale': 1, 'do_flip': False}
+        train_dataset = WHMetro()
 
     elif args.stage == 'things':
         aug_params = {'crop_size': args.image_size, 'min_scale': -0.4, 'max_scale': 0.8, 'do_flip': True}
@@ -243,10 +301,8 @@ def fetch_dataloader(args, TRAIN_DS='C+T+K+S+H'):
     elif args.stage == 'kitti':
         aug_params = {'crop_size': args.image_size, 'min_scale': -0.2, 'max_scale': 0.4, 'do_flip': False}
         train_dataset = KITTI(aug_params, split='training')
+    
 
-    elif args.stage == 'TUB':
-        aug_params = {'crop_size': args.image_size, 'min_scale': -0.2, 'max_scale': 0.4, 'do_flip': False}
-        train_dataset = TUB(aug_params)
 
     else:
         raise ValueError('Invalid training set')

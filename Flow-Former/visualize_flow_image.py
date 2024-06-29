@@ -167,8 +167,12 @@ def visualize_flow_image(root_dir, viz_root_dir, model, img_pairs, keep_size):
 
         image1, image2, viz_fn = prepare_image(root_dir, viz_root_dir, fn1, fn2, keep_size)
         flow = compute_flow(model, image1, image2, weights)
+        # save to .png
         flow_img = flow_viz.flow_to_image(flow)
         cv2.imwrite(viz_fn, flow_img[:, :, [2, 1, 0]])
+        # save to .flo
+        flo_filename = viz_fn.replace('.png', '.flo')
+        frame_utils.writeFlow(flo_filename, flow)
 
 
 def process_scenes(data_dir, scenes=None):
@@ -213,6 +217,7 @@ if __name__ == '__main__':
     parser.add_argument('--viz_root_dir', default='./outputs/sintel')
     parser.add_argument('--keep_size', default=True, action='store_true',
                         help='keep the image size, or the image will be adaptively resized')
+    parser.add_argument('--scenes', nargs='+', help='list of scenes to process')
 
     args = parser.parse_args()
 
@@ -232,9 +237,9 @@ if __name__ == '__main__':
     if args.eval_type == 'sintel':
         img_pairs = process_scenes(args.data_dir)
     elif args.eval_type == 'tub':
-        img_pairs = process_scenes(args.data_dir, scenes=['IM01'])
+        img_pairs = process_scenes(args.data_dir, args.scenes)
     elif args.eval_type == 'wuhan':
-        img_pairs = process_scenes(args.data_dir, scenes=['transfer1-1-20231231170000-20231231203000-100992192'])
+        img_pairs = process_scenes(args.data_dir, args.scenes)
     elif args.eval_type == 'seq':
         img_pairs = generate_pairs(args.seq_dir, args.start_idx, args.end_idx)
     else:
