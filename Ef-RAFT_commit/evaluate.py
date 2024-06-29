@@ -19,6 +19,7 @@ from utils import frame_utils
 from raft import RAFT
 from utils.utils import InputPadder, forward_interpolate
 
+
 def angular_error(flow_pr, flow_gt):
     flow_pr_norm = flow_pr / (torch.norm(flow_pr, dim=0, keepdim=True) + 1e-8)
     flow_gt_norm = flow_gt / (torch.norm(flow_gt, dim=0, keepdim=True) + 1e-8)
@@ -203,8 +204,7 @@ def validate_kitti(model, iters=24):
 @torch.no_grad()
 def validate_TUB(model, iters=24):
     model.eval()
-    val_dataset = datasets.TUB(name='IM05')
-    # name must in ['IM01', 'IM01_hDyn', 'IM02', 'IM02_hDyn', 'IM03', 'IM03_hDyn', 'IM04', 'IM04_hDyn', 'IM05', 'IM05_hDyn']
+    val_dataset = datasets.TUB()
     ae_list, ie_list, epe_list = [], [], []
     bar = tqdm.tqdm(total=len(val_dataset))
     for val_id in range(len(val_dataset)):
@@ -238,47 +238,8 @@ def validate_TUB(model, iters=24):
     epe = np.mean(epe_list)
     ae = np.mean(ae_list)
     ie = np.mean(ie_list)
-    print(f'TUB_epe: {epe}; TUB_ae: {ae}; TUB_ie: {ie}')
-    return {'TUB_epe': epe,'TUB_ae': ae, 'TUB_ie': ie}
+    print(f"Validation TUB epe:{epe}, ae:{ae}, ie:{ie}")
 
-def validate_Metro(model, iters=24):
-    model.eval()
-    val_dataset = datasets.WHMetro(name='validation')
-    ae_list, ie_list, epe_list = [], [], []
-    bar = tqdm.tqdm(total=len(val_dataset))
-    for val_id in range(len(val_dataset)):
-        bar.update(1)
-        image1, image2, flow_gt, _ = val_dataset[val_id]
-        image1 = image1[None].cuda()
-        image2 = image2[None].cuda()
-
-        padder = InputPadder(image1.shape)
-        image1, image2 = padder.pad(image1, image2)
-
-        flow_low, flow_pr = model(image1, image2, iters=iters, test_mode=True)
-        flow = padder.unpad(flow_pr[0]).cpu()
-
-        epe = torch.sum((flow - flow_gt) ** 2, dim=0).sqrt()
-        epe_list.append(epe.view(-1).numpy())
-
-        # 计算 AE
-        angle_error = angular_error(flow, flow_gt)
-        ae_list.append(angle_error.mean().item())
-
-        # 计算 IE
-        image1_warped = warp(image1, flow.unsqueeze(0))
-        ie = torch.mean(torch.abs(image2 - image1_warped)).item()
-        ie_list.append(ie)
-
-    epe_list = np.array(epe_list)
-    ae_list = np.array(ae_list)
-    ie_list = np.array(ie_list)
-
-    epe = np.mean(epe_list)
-    ae = np.mean(ae_list)
-    ie = np.mean(ie_list)
-    print(f'Metro_epe: {epe}; Metro_ae: {ae}; Metro_ie: {ie}')
-    return {'Metro_epe': epe,'Metro_ae': ae, 'Metro_ie': ie}
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

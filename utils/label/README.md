@@ -31,6 +31,3 @@ print(label["shape"])
 print(label["picture_name"])
 
 ```
-
-## Label Reader
-默认生成单独的文件，传入参数`--pack True`可以生成单个pkl文件。pkl文件保存了一个label列表。
