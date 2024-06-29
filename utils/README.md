@@ -29,5 +29,5 @@ python utils/ts2png.py E:/data/Wuhan_Metro/
 
 用法示例：
 ```sh
-python utils/ts2png.py E:/data/Wuhan_Metro/江汉路-厅东闸机2-2-20231231170000-20231231203000-29254227/
+python utils/visualizeJson.py E:/data/Wuhan_Metro/江汉路-厅东闸机2-2-20231231170000-20231231203000-29254227/
 ```
