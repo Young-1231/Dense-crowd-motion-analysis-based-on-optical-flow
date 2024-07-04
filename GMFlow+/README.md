@@ -39,7 +39,7 @@ python main_flow.py --eval --resume pretrained/gmflow-scale1-things-e9887eda.pth
 基于`gmflow-scale1-things-e9887eda.pth`预训练模型进行微调（finetune），采用交叉验证方案评估，区分静态与动态。
 
 微调策略：
-IM01-IM04训练，IM05测试；IM01-IM03、IM05训练，IM04测试……以此类推。
+Leave-one-out交叉验证法。
 
 |    序列     |  EPE   |   AE   |   IE    |
 |:---------:|:------:|:------:|:-------:|
