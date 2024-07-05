@@ -214,70 +214,89 @@ class FlyingChairs(FlowDataset):
 class CrowdFlow(FlowDataset):
     def __init__(
         self,
-        aug_params=None,
-        split="train",
-        root="datasets/TUBCrowdFlow",
-        tub_IM=1,
+        aug_params=None,  # 数据集参数传入
+        root="datasets/TUBCrowdFlow",  # 数据集根目录
+        tub_IM=1,  # 表示要使用的TUBCrowdFlow数据集的场景编号
     ):
         super(CrowdFlow, self).__init__(aug_params)
 
-        IM_list = list(tub_IM)
+        IM_list = list(tub_IM)  # 将tub_IM转换为列表
 
         if "D" in IM_list:
-            IM_list.remove("D")
-            suffix = "_hDyn"
+            IM_list.remove("D")  # 如果包含"D"，则为动态场景
+            suffix = "_hDyn"  # 设置后缀
         else:
             suffix = ""
 
         for IM_id in IM_list:
-            images_root = osp.join(root, "images", "IM0" + str(IM_id) + suffix)
-            flow_root = osp.join(root, "gt_flow", "IM0" + str(IM_id) + suffix)
+            images_root = osp.join(
+                root, "images", "IM0" + str(IM_id) + suffix
+            )  # 构建图像目录路径
+            flow_root = osp.join(
+                root, "gt_flow", "IM0" + str(IM_id) + suffix
+            )  # 构建光流目录路径
 
-            images1 = sorted(glob(osp.join(images_root, "*.png")))[1:]
-            images2 = sorted(glob(osp.join(images_root, "*.png")))[:-1]
-            images = sorted(images1 + images2)
+            # 将视频流转化为图片对
+            images1 = sorted(glob(osp.join(images_root, "*.png")))[
+                1:
+            ]  # 获取图像文件并排序，从第二个开始
+            images2 = sorted(glob(osp.join(images_root, "*.png")))[
+                :-1
+            ]  # 获取图像文件并排序，去掉最后一个
+            images = sorted(images1 + images2)  # 合并图像列表并排序
 
-            flows = sorted(glob(osp.join(flow_root, "*.flo")))
+            flows = sorted(glob(osp.join(flow_root, "*.flo")))  # 获取光流文件并排序
 
-            assert len(images) // 2 == len(flows)
+            assert len(images) // 2 == len(flows)  # 确保图像对数量与光流文件数量匹配
 
             for i in range(len(flows)):
-                self.flow_list += [flows[i]]
-                self.image_list += [[images[2 * i], images[2 * i + 1]]]
+                self.flow_list += [flows[i]]  # 添加光流文件路径
+                self.image_list += [
+                    [images[2 * i], images[2 * i + 1]]
+                ]  # 添加图像对路径
 
 
 class WuhanMetro(FlowDataset):
     def __init__(
         self,
-        aug_params=None,
-        split="train",
-        root="datasets/WuhanMetro",
+        aug_params=None,  # 数据增强参数
+        split="train",  # 数据集划分，默认是训练集
+        root="datasets/WuhanMetro",  # 数据集根目录
     ):
         super(WuhanMetro, self).__init__(aug_params)
 
-        images_root = osp.join(root, "transfer-image")
-        flow_root = osp.join(root, "transfer-flow-t")
+        images_root = osp.join(root, "transfer-image")  # 构建图像目录路径
+        flow_root = osp.join(root, "transfer-flow-t")  # 构建光流目录路径
 
-        images1 = sorted(glob(osp.join(images_root, "*.png")))[1:]
-        images2 = sorted(glob(osp.join(images_root, "*.png")))[:-1]
-        images = sorted(images1 + images2)
+        # 将视频流转化为图片对
+        images1 = sorted(glob(osp.join(images_root, "*.png")))[
+            1:
+        ]  # 获取图像文件并排序，从第二个开始
+        images2 = sorted(glob(osp.join(images_root, "*.png")))[
+            :-1
+        ]  # 获取图像文件并排序，去掉最后一个
+        images = sorted(images1 + images2)  # 合并图像列表并排序
 
-        flows = sorted(glob(osp.join(flow_root, "*.flo")))
+        flows = sorted(glob(osp.join(flow_root, "*.flo")))  # 获取光流文件并排序
 
-        assert len(images) // 2 == len(flows)
+        assert len(images) // 2 == len(flows)  # 确保图像对数量与光流文件数量匹配
 
-        train_test_split = 0.8
-        train_len = int(len(flows) * train_test_split)
-        test_len = len(flows) - train_len
+        train_test_split = 0.8  # 训练集和测试集的比例
+        train_len = int(len(flows) * train_test_split)  # 计算训练集的长度
+        test_len = len(flows) - train_len  # 计算测试集的长度
 
         if split == "train":
             for i in range(train_len):
-                self.flow_list += [flows[i]]
-                self.image_list += [[images[2 * i], images[2 * i + 1]]]
+                self.flow_list += [flows[i]]  # 添加训练集的光流文件路径
+                self.image_list += [
+                    [images[2 * i], images[2 * i + 1]]
+                ]  # 添加训练集的图像对路径
         elif split == "test":
             for i in range(train_len, len(flows)):
-                self.flow_list += [flows[i]]
-                self.image_list += [[images[2 * i], images[2 * i + 1]]]
+                self.flow_list += [flows[i]]  # 添加测试集的光流文件路径
+                self.image_list += [
+                    [images[2 * i], images[2 * i + 1]]
+                ]  # 添加测试集的图像对路径
 
 
 class FlyingThings3D(FlowDataset):
