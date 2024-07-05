@@ -13,6 +13,5 @@ def load_flow_to_numpy(path):
     return data2D
 
 
-data = load_flow_to_numpy("G:/dataset/TUBCrowdFlow/gt_flow/IM01/frameGT_0200.flo")
-save_vis_flow_tofile(data, "G:/dataset/TUBCrowdFlow/gt_flow/IM01/frameGT_0200_new.png")
-print("convert!")
+data = load_flow_to_numpy("G:/dataset/TUBCrowdFlow/gt_flow/IM01/frameGT_0000.flo")
+save_vis_flow_tofile(data, "G:/dataset/TUBCrowdFlow/gt_flow/IM01/frameGT_0000_new.png")
