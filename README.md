@@ -11,18 +11,32 @@ Accuracy 和 mIOU 等指标；
 - 集成所选算法，在 WuhanMetro 数据集选取典型场景完成 demo 的制作，输出光流、
 人群运动场、人群分割图等处理结果。
 
-## 调用模型
+## 数据
 
-- **Ef-RAFT(CVPR 2024)**
-- **Flow-Former(ECCV 2022)**
-- **GMA(ICCV 2021)**
-- **GMFlow+(TPAMI 2023)**
-- **GMFlowNet(CVPR 2022)**
+- [TUB CrowdFlow](https://github.com/zhengcyyy/Dense-crowd-motion-analysis-based-on-optical-flow/tree/main/GMFlowNet)
 
-### 测试结果
+## 模型
 
-各模型测试结果详解项目子文件。可视化结果如下
+- [Ef-RAFT(CVPR 2024)](https://github.com/zhengcyyy/Dense-crowd-motion-analysis-based-on-optical-flow/tree/main/Ef-RAFT_commit)
+- [Flow-Former(ECCV 2022)](https://github.com/zhengcyyy/Dense-crowd-motion-analysis-based-on-optical-flow/tree/main/Flow-Former)
+- [GMA(ICCV 2021)](https://github.com/zhengcyyy/Dense-crowd-motion-analysis-based-on-optical-flow/tree/main/GMA)
+- [GMFlow+(TPAMI 2023)](https://github.com/zhengcyyy/Dense-crowd-motion-analysis-based-on-optical-flow/tree/main/GMFlow%2B)
+- [GMFlowNet(CVPR 2022)](https://github.com/zhengcyyy/Dense-crowd-motion-analysis-based-on-optical-flow/tree/main/GMFlowNet)
 
-### 参考文献
+## 其他
+
+* [光流经典方法](https://github.com/zhengcyyy/Dense-crowd-motion-analysis-based-on-optical-flow/tree/main/TraditionMethod)
+
+  * 多线程经典光流标注
+
+* [工具](https://github.com/zhengcyyy/Dense-crowd-motion-analysis-based-on-optical-flow/tree/main/utils)
+
+  * MSE、mlOU指标分析
+  * 标注数据转化
+  * 视频合成
+  * ts视频解析
+  * gif图像生成
+
+## 参考文献
 
 * Baker, S., Scharstein, D., Lewis, J.P. et al. A Database and Evaluation Methodology for Optical Flow. Int J Comput Vis 92, 1–31 (2011). https://doi.org/10.1007/s11263-010-0390-2
